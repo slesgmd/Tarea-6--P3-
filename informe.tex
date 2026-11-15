@@ -1,0 +1,107 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+
+\title{Programación III \\ Tarea 6: Árboles y Grafos}
+\author{Sebastián Lescano}
+\date{2026-2}
+
+\begin{document}
+\maketitle
+
+Cada ejercicio está en su propio archivo (\texttt{ejercicio1.cpp} a \texttt{ejercicio4.cpp}) y se compila por separado. En todos la altura se cuenta en niveles: el árbol vacío tiene altura 0 y un solo nodo tiene altura 1.
+
+\section{Ejercicio 1: por qué el BST se degrada a $O(n)$}
+
+Insertar, buscar o eliminar una clave recorre un solo camino desde la raíz, así que el costo es proporcional a la altura $h$ del árbol.
+
+Un árbol binario de altura $h$ tiene como máximo $2^h - 1$ nodos y como mínimo $h$ nodos (uno por nivel). Entonces, para $n$ nodos:
+\[
+\log_2(n + 1) \le h \le n
+\]
+
+El BST solo exige el orden izquierda $<$ nodo $<$ derecha, y eso no impide llegar al extremo $h = n$. Se llega insertando las claves en orden $a_1 < a_2 < \dots < a_n$. Por inducción sobre $k$:
+
+\begin{itemize}
+\item Con $k = 1$ el árbol es un solo nodo, una cadena de altura 1.
+\item Si después de $k$ inserciones el árbol es una cadena donde cada nodo solo tiene hijo derecho, la clave $a_{k+1}$ es mayor que todas las anteriores, así que en cada comparación baja por la derecha y queda como hijo derecho del último nodo. El árbol sigue siendo una cadena y ahora tiene altura $k + 1$.
+\end{itemize}
+
+Por lo tanto $h = n$. La inserción número $i$ hace $i - 1$ comparaciones, y el total para construir el árbol es:
+\[
+\sum_{i=1}^{n} (i - 1) = \frac{n(n - 1)}{2}
+\]
+
+Eso es $O(n^2)$ en total y $O(n)$ por operación, igual que una lista enlazada. En el ejercicio 2 se ve con datos: al insertar $1, 2, \dots, 20$ en orden el BST queda con altura 20.
+
+\section{Ejercicio 2: por qué la altura del Red-Black Tree es $O(\log n)$}
+
+Sea $bh(x)$ la cantidad de nodos negros en cualquier camino desde $x$ hasta una hoja nula, sin contar a $x$ y contando la hoja nula. Por la propiedad 4 este número está bien definido.
+
+\textbf{Lema.} El subárbol con raíz $x$ tiene al menos $2^{bh(x)} - 1$ nodos.
+
+Por inducción sobre la altura de $x$:
+
+\begin{itemize}
+\item Si $x$ es una hoja nula, $bh(x) = 0$ y el subárbol tiene $2^0 - 1 = 0$ nodos.
+\item Si $x$ es un nodo, cada hijo tiene altura negra $bh(x)$ si es rojo o $bh(x) - 1$ si es negro, o sea al menos $bh(x) - 1$. Por hipótesis cada subárbol hijo tiene al menos $2^{bh(x) - 1} - 1$ nodos, y sumando a $x$:
+\[
+2\left(2^{bh(x) - 1} - 1\right) + 1 = 2^{bh(x)} - 1
+\]
+\end{itemize}
+
+Ahora se toma el camino más largo desde la raíz $r$, que tiene $h$ nodos. Por la propiedad 3 no puede haber dos rojos seguidos, y por la propiedad 2 empieza en negro, así que al menos la mitad de esos nodos son negros. Entonces $bh(r) \ge h/2$.
+
+Juntando las dos cosas:
+\begin{align*}
+n &\ge 2^{bh(r)} - 1 \ge 2^{h/2} - 1 \\
+n + 1 &\ge 2^{h/2} \\
+h &\le 2\log_2(n + 1)
+\end{align*}
+
+Por eso $h$ es $O(\log n)$. La inserción mantiene las propiedades porque el nodo nuevo entra rojo (no cambia la altura negra) y la corrección solo recolorea o rota, y cada rotación es $O(1)$. La recoloración puede subir hasta la raíz, así que insertar cuesta $O(\log n)$.
+
+Resultado al insertar $n = 20$ elementos en orden ascendente:
+
+\begin{center}
+\begin{tabular}{lr}
+\hline
+Árbol & Altura \\
+\hline
+BST & 20 \\
+Red-Black Tree & 6 \\
+Cota $2\log_2(21)$ & 8.78 \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Ejercicio 3: por qué DFS es adecuado}
+
+Un camino raíz-hoja es una rama completa del árbol, y DFS recorre el árbol justamente rama por rama: baja hasta una hoja antes de probar otra.
+
+En la implementación la pila cumple un invariante: siempre contiene exactamente los nodos del camino desde la raíz hasta el nodo actual. Por eso:
+
+\begin{itemize}
+\item La suma se actualiza en $O(1)$: se suma al hacer push y se resta al hacer pop.
+\item Cuando se llega a una hoja con suma $K$, el camino ya está en la pila y solo hay que copiarlo.
+\item La memoria es $O(h)$, porque la pila nunca tiene más nodos que la altura.
+\end{itemize}
+
+Con BFS se avanzaría por niveles mezclando nodos de ramas distintas, y habría que guardar la suma y el camino de cada nodo que está en la cola, lo que ocupa $O(n)$ o más. Cada nodo entra y sale de la pila una sola vez, así que el tiempo es $O(n)$.
+
+\section{Ejercicio 4: por qué BFS es el enfoque natural}
+
+La cola es FIFO, así que los nodos salen en orden de profundidad: si la cola tiene todos los nodos del nivel $d$, al sacarlos se encolan todos sus hijos, que son exactamente los del nivel $d + 1$. Por inducción, antes de procesar cada nivel la cola contiene ese nivel completo y de izquierda a derecha. Las tres métricas se definen por niveles:
+
+\begin{itemize}
+\item \textbf{Árbol completo:} todos los niveles llenos menos el último, que se llena de izquierda a derecha. Eso equivale a que en el recorrido por niveles no aparezca ningún nodo después de un espacio vacío, y BFS recorre en ese mismo orden.
+\item \textbf{Ancho máximo:} es el mayor número de nodos en un nivel. Por el invariante, el tamaño de la cola al empezar cada nivel es el ancho de ese nivel.
+\item \textbf{Profundidad mínima:} como los nodos salen en orden no decreciente de profundidad, la primera hoja que sale de la cola es la menos profunda y se puede terminar ahí sin recorrer el resto.
+\end{itemize}
+
+Con DFS habría que recorrer todo el árbol y guardar aparte el nivel de cada nodo. Las tres funciones son $O(n)$ en tiempo y $O(w)$ en memoria, donde $w$ es el ancho máximo.
+
+\end{document}
