@@ -4,6 +4,8 @@
 \usepackage[spanish]{babel}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{babel}
 
 \title{Programación III \\ Tarea 6: Árboles y Grafos}
 \author{Sebastián Lescano \\ 202510447}
@@ -77,6 +79,67 @@ Cota $2\log_2(21)$ & 8.78 \\
 \hline
 \end{tabular}
 \end{center}
+
+Con el recorrido pre-orden que imprime el programa se pueden dibujar los dos árboles, porque en un BST el primer valor es la raíz, los menores van a su izquierda y los mayores a su derecha.
+
+Pre-orden del Red-Black Tree (N negro, R rojo):
+
+\begin{center}
+\small 8(N) 4(R) 2(N) 1(N) 3(N) 6(N) 5(N) 7(N) 12(R) 10(N) 9(N) 11(N) 16(N) 14(R) 13(N) 15(N) 18(R) 17(N) 19(N) 20(R)
+\end{center}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  level distance=1.1cm,
+  level 1/.style={sibling distance=7cm},
+  level 2/.style={sibling distance=3.5cm},
+  level 3/.style={sibling distance=1.8cm},
+  level 4/.style={sibling distance=1cm},
+  level 5/.style={sibling distance=0.8cm},
+  negro/.style={circle, draw, fill=black, text=white, minimum size=6.5mm, inner sep=0pt, font=\small},
+  rojo/.style={negro, fill=red!75!black, draw=red!75!black}]
+\node[negro] {8}
+  child {node[rojo] {4}
+    child {node[negro] {2}
+      child {node[negro] {1}}
+      child {node[negro] {3}}}
+    child {node[negro] {6}
+      child {node[negro] {5}}
+      child {node[negro] {7}}}}
+  child {node[rojo] {12}
+    child {node[negro] {10}
+      child {node[negro] {9}}
+      child {node[negro] {11}}}
+    child {node[negro] {16}
+      child {node[rojo] {14}
+        child {node[negro] {13}}
+        child {node[negro] {15}}}
+      child {node[rojo] {18}
+        child {node[negro] {17}}
+        child {node[negro] {19}
+          child[missing]
+          child {node[rojo] {20}}}}}};
+\end{tikzpicture}
+\caption{Red-Black Tree después de insertar del 1 al 20 en orden (altura 6).}
+\end{figure}
+
+Pre-orden del BST:
+
+\begin{center}
+\small 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+\end{center}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[every node/.style={circle, draw, minimum size=6mm, inner sep=0pt, font=\scriptsize}]
+\foreach \i in {1,...,20}
+  \node (n\i) at (0.55*\i, -0.42*\i) {\i};
+\foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,19}
+  \draw (n\i) -- (n\j);
+\end{tikzpicture}
+\caption{BST después de insertar los mismos datos (altura 20). Cada nodo solo tiene hijo derecho.}
+\end{figure}
 
 \section{Ejercicio 3: por qué DFS es adecuado}
 
